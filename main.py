@@ -1,8 +1,3 @@
-"""
-    Title: US Guessed the States Names Game
-    Author: BrandonMagana
-"""
-
 import turtle
 import pandas as pd
 
@@ -41,18 +36,15 @@ def get_state_coor(states_df, answer_state):
     Creates a new .csv file that contains the unguessed states names.
     
     Arguments:
-        None
+        states(list): list of all names of the states
+        states_guessed(list): list that contains the name of the states that have ben guessed
     
     Returns:
         None
 """
-def create_states_to_learn_file():
-    states_to_learn = []
-
+def create_states_to_learn_file(states, states_guessed):
     #Fill the states_to_learn list with the names of the states that couldn't be guessed
-    for state in states:
-        if state not in states_guessed:
-            states_to_learn.append(state)
+    states_to_learn = [state for state in states if state not in states_guessed]
    
     #Generate a pandas.DataFrame from a dictionary
     to_learn_dict = {
@@ -64,7 +56,7 @@ def create_states_to_learn_file():
     states_to_learn_df.to_csv("States_to_learn.csv")
 
 if __name__ == '__main__':
-    
+
     #Setting up screen
     screen = turtle.Screen()
     screen.title("U.S States Game")
@@ -89,7 +81,7 @@ if __name__ == '__main__':
         #Check if user wants to end the game before winning and stop it if so.
         #Also creates a .csv file with the unguessed states names
         if answer_state == "Exit":
-            create_states_to_learn_file()
+            create_states_to_learn_file(states, states_guessed)
             print(f"Keep practicing you guessed {len(states_guessed)}/50 States")
             print("Check out the States you got to learn at States_to_learn.csv File")
             break
