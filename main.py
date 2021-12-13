@@ -1,65 +1,107 @@
-from tkinter.constants import S
 import turtle
 import pandas as pd
 
-#Setting up screen
-screen = turtle.Screen()
-screen.title("U.S States Game")
-
-#Adding image as screen background
-image = "blank_states_img.gif"
-screen.addshape(image)
-turtle.shape(image)
-
-#function for getting the states coordinates
-# def get_mouse_on_click_coor(x, y):
-#     print(x, y)
-# screen.onclick(get_mouse_on_click_coor)
-
-#Getting Pandas DataFrame
-df  = pd.read_csv("50_states.csv")
-
+"""
+    Check is a given state is in the current dataframe column
+    
+    Arguments:
+        states(list): list from which is going to check if the given state name exists in
+        answer_state(str): string that represents the state to be checked
+    
+    Returns:
+        (bool) indicate whether the state is valid or not
+"""
 def state_exists(states, answer_state):
-    state = states[states["state"] == answer_state]
-    return not state.empty
+    return answer_state in states
 
-def get_state_coor(states, answer_state):
-    state = states[states["state"] == answer_state]
+"""
+    Check is a given state is in the current dataframe column
+    
+    Arguments:
+        states_df(pandas.DataFrame): pandas Dataframe from which is going to retrieve a given state
+        answer_state(str): string that represents the state 
+    
+    Returns:
+        coors(tuple): tuple that contains the x and y coordinates of the state
+"""
+
+def get_state_coor(states_df, answer_state):
+    state = states_df[states_df["state"] == answer_state]
     x = int(state.x)
     y = int(state.y)
-    return (x, y)
+    coors = (x, y)
+    return coors
 
-states_guessed = []
+"""
+    Creates a new .csv file that contains the unguessed states names.
+    
+    Arguments:
+        None
+    
+    Returns:
+        None
+"""
+def create_states_to_learn_file():
+    states_to_learn = []
 
-while len(states_guessed) < 50:
-    answer_state = screen.textinput(f"{len(states_guessed)}/50 States Guessed", "What's another state's name?: ").title()
-    if answer_state == "Exit":
-        screen.bye()
-        break
+    #Fill the states_to_learn list with the names of the states that couldn't be guessed
+    for state in states:
+        if state not in states_guessed:
+            states_to_learn.append(state)
+   
+    #Generate a pandas.DataFrame from a dictionary
+    to_learn_dict = {
+        "States to learn" : states_to_learn
+    }
+    states_to_learn_df = pd.DataFrame(to_learn_dict)
 
-    if state_exists(df, answer_state):
-        states_guessed.append(answer_state)
-        t = turtle.Turtle()
-        t.hideturtle()
-        t.penup()
-        coors = get_state_coor(df, answer_state)
-        t.goto(x = coors[0], y = coors[1])
-        t.write(answer_state)
+    #Create .csv file from dictionary
+    states_to_learn_df.to_csv("States_to_learn.csv")
 
-#States_to_learn.csv
-states = df.state.to_list()
-states_to_learn = []
-for state in states:
-    if state not in states_guessed:
-        states_to_learn.append(state)
+if __name__ == '__main__':
+    
+    #Setting up screen
+    screen = turtle.Screen()
+    screen.title("U.S States Game")
 
+    #Adding image as screen background
+    image = "blank_states_img.gif"
+    screen.addshape(image)
+    turtle.shape(image)
 
-data_dict = {
-    "States to learn" : states_to_learn
-}
+    #Getting the states from a .csv files and turning them into a list
+    df  = pd.read_csv("50_states.csv")
+    states = df.state.to_list()
+    #List that contains the states that have been guessed
+    states_guessed = []
 
-states_to_learn_df = pd.DataFrame(data_dict)
+    #Game Logic
+    while len(states_guessed) < 50:
+        #Display input window  and format the given answer
+        answer_state = screen.textinput(f"{len(states_guessed)}/50 States Guessed", 
+                                        "What's another state's name?: ").title()
 
-states_to_learn_df.to_csv("States_to_learn.csv")
-print(f"Well done you guessed {len(states_guessed)}/50 States")
-print("Check out the States you got to learn at States_to_learn.csv File")
+        #Check if user wants to end the game before winning and stop it if so.
+        #Also creates a .csv file with the unguessed states names
+        if answer_state == "Exit":
+            create_states_to_learn_file()
+            print(f"Keep practicing you guessed {len(states_guessed)}/50 States")
+            print("Check out the States you got to learn at States_to_learn.csv File")
+            break
+        
+        #Writes the name of the state on top of the image and appends it to the states_guessed list
+        if state_exists(states, answer_state):
+            states_guessed.append(answer_state)
+            t = turtle.Turtle()
+            t.hideturtle()
+            t.penup()
+            coors = get_state_coor(df, answer_state)
+            t.goto(x = coors[0], y = coors[1])
+            t.write(answer_state)
+
+    #Display winning message
+    if(len(states_guessed) == 50):
+        print("Congratulations, you guessed all the US states!")
+
+    #The turtle.screen window is shut down
+    screen.bye()
